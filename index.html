@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RichPay - Digital Payments</title>
+<style>
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f5f3fb;
+  color: #241443;
+}
+header {
+  background: #5f259f;
+  color: white;
+  padding: 22px 18px;
+  border-radius: 0 0 22px 22px;
+}
+.brand { font-size: 24px; font-weight: bold; }
+.small { font-size: 13px; opacity: .85; }
+.balance {
+  margin-top: 24px;
+  background: white;
+  color: #241443;
+  padding: 18px;
+  border-radius: 16px;
+}
+.amount { font-size: 30px; font-weight: bold; margin: 8px 0; }
+main { padding: 18px; max-width: 650px; margin: auto; }
+h3 { margin-top: 24px; }
+.actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+button {
+  border: 0;
+  border-radius: 12px;
+  padding: 14px 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.action {
+  background: white;
+  color: #5f259f;
+  box-shadow: 0 2px 8px #ddd5ee;
+}
+.action span { display: block; font-size: 24px; margin-bottom: 8px; }
+.panel {
+  background: white;
+  padding: 16px;
+  border-radius: 16px;
+  margin-top: 14px;
+}
+.transaction {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 13px 0;
+  border-bottom: 1px solid #eee;
+}
+.transaction:last-child { border-bottom: 0; }
+.green { color: #16844a; }
+.purple { color: #5f259f; }
+input {
+  width: 100%;
+  padding: 13px;
+  margin: 8px 0;
+  border: 1px solid #d7c9e8;
+  border-radius: 10px;
+  font-size: 16px;
+}
+.primary {
+  width: 100%;
+  color: white;
+  background: #5f259f;
+  margin-top: 8px;
+}
+.note { font-size: 12px; color: #777; }
+footer { text-align: center; padding: 22px; color: #777; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">💜 RichPay</div>
+  <div class="small">Your money, made simple · Demo app</div>
+  <div class="balance">
+    <div class="small">Demo wallet balance</div>
+    <div class="amount" id="balance">₹5,000.00</div>
+    <div class="small">Sample balance — not real money</div>
+  </div>
+</header>
+
+<main>
+  <h3>Quick actions</h3>
+  <div class="actions">
+    <button class="action" onclick="showForm('send')">
+      <span>👤</span>Send Money
+    </button>
+    <button class="action" onclick="showForm('scan')">
+      <span>▦</span>Scan & Pay
+    </button>
+    <button class="action" onclick="showForm('recharge')">
+      <span>📱</span>Recharge
+    </button>
+  </div>
+
+  <section class="panel" id="paymentPanel">
+    <h3 id="formTitle">Welcome to RichPay!</h3>
+    <p id="formDescription">Choose an action above to try the demo.</p>
+    <div id="formFields"></div>
+  </section>
+
+  <h3>Recent transactions</h3>
+  <section class="panel" id="transactions">
+    <div class="transaction">
+      <div>🛒 Shopping<br><span class="small">Yesterday · Sample</span></div>
+      <strong>− ₹450</strong>
+    </div>
+    <div class="transaction">
+      <div>💰 Pocket money<br><span class="small">Yesterday · Sample</span></div>
+      <strong class="green">+ ₹1,000</strong>
+    </div>
+  </section>
+
+  <p class="note">
+    Educational prototype only. No real payments, bank accounts,
+    UPI connections, or QR scanning are supported.
+  </p>
+</main>
+
+<footer>RichPay · Built by The Rich Glitch</footer>
+
+<script>
+let balance = 5000;
+
+function showForm(type) {
+  const title = document.getElementById('formTitle');
+  const desc = document.getElementById('formDescription');
+  const fields = document.getElementById('formFields');
+
+  if (type === 'scan') {
+    title.textContent = 'Scan & Pay';
+    desc.textContent = 'QR scanning is not enabled in this demo.';
+    fields.innerHTML =
+      '<p>To try a payment, choose Send Money instead.</p>';
+    return;
+  }
+
+  title.textContent =
+    type === 'send' ? 'Send Demo Money' : 'Mobile Recharge Demo';
+
+  desc.textContent = 'Enter sample details. No real payment will occur.';
+
+  fields.innerHTML = `
+    <label>${type === 'send' ? 'Recipient name' : 'Mobile number'}</label>
+    <input id="recipient" placeholder="${
+      type === 'send' ? 'e.g. Alex' : 'Demo number'
+    }" maxlength="40">
+
+    <label>Amount (₹)</label>
+    <input id="amount" type="number" min="1" max="5000"
+      placeholder="Enter amount">
+
+    <button class="primary" onclick="makePayment('${type}')">
+      Try Demo ${type === 'send' ? 'Transfer' : 'Recharge'}
+    </button>
+    <p id="message" role="status"></p>
+  `;
+}
+
+function makePayment(type) {
+  const recipient = document.getElementById('recipient').value.trim();
+  const amount = Number(document.getElementById('amount').value);
+  const message = document.getElementById('message');
+
+  if (!recipient || !Number.isFinite(amount) ||
+      amount <= 0 || amount > balance) {
+    message.textContent = 'Enter a name and a valid amount within your demo balance.';
+    return;
+  }
+
+  balance -= amount;
+  document.getElementById('balance').textContent =
+    '₹' + balance.toLocaleString('en-IN', {
+      minimumFractionDigits: 2
+    });
+
+  const row = document.createElement('div');
+  row.className = 'transaction';
+
+  const details = document.createElement('div');
+  details.textContent =
+    (type === 'send' ? '👤 Sent to ' : '📱 Recharge: ') + recipient;
+
+  const value = document.createElement('strong');
+  value.textContent = '− ₹' + amount.toLocaleString('en-IN');
+
+  row.append(details, value);
+  document.getElementById('transactions').prepend(row);
+
+  message.textContent = 'Demo successful! No real money was transferred.';
+  document.getElementById('formFields').querySelectorAll('input')
+    .forEach(input => input.value = '');
+}
+</script>
+</body>
+</html>
